@@ -19,10 +19,12 @@ extern "C"{
 #include "pico/stdio/driver.h"
 #include "pico/stdio.h"
 #include "pico/stdio_usb.h"
+#include "hardware/uart.h"
 
 class TSTAgent  : public Agent {
 public:
 	TSTAgent();
+	TSTAgent(uart_inst_t * uart);
 	virtual ~TSTAgent();
 
 protected:
@@ -37,12 +39,19 @@ protected:
 	 */
 	virtual configSTACK_DEPTH_TYPE getMaxStackSize();
 
+
+
 private:
+
+	int readData(uint8_t *buf, size_t max);
+	void writeData(uint8_t *buf, size_t length);
 
 	uint8_t rxData[TSTMAXSIZE];
 	size_t rxSize = 0;
 	uint8_t txData[TSTMAXSIZE];
 	size_t txSize = 0;
+
+	uart_inst_t * pUart = NULL;
 };
 
 #endif /* EXP_2CORERTOS_SRC_TSTAGENT_H_ */

@@ -11,6 +11,11 @@
 
 
 
+TSTAgent::TSTAgent(uart_inst_t * uart) {
+	pUart = uart;
+
+}
+
 TSTAgent::TSTAgent() {
 	// TODO Auto-generated constructor stub
 
@@ -39,7 +44,7 @@ void TSTAgent::run(){
 
 	for (;;){
 
-		read = stdio_usb.in_chars((char*)rxData, TSTMAXSIZE);
+		read = readData( rxData,  TSTMAXSIZE);
 		if (read > 0) {
 			//printf("Read %u\n", read);
 			rxSize = read;
@@ -70,10 +75,7 @@ void TSTAgent::run(){
 
 			tstMonitorSend(TST_Device.name, TST_Interface.interface, "TST Device alive");
 			if (tstTx(TST_Device.name, TST_Interface.interface, txData, &txSize) == TST_OK && txSize > 0) {
-
-				stdio_usb.out_chars((char*)txData, txSize);
-				stdio_usb.out_chars(buf, txSize);
-				stdio_usb.out_flush();
+				writeData( txData, txSize);
 				vTaskDelay(1);
 				printf("Send(%u) data [%lu, %lu]\n", txSize, c0, c1);
 			}
@@ -85,6 +87,34 @@ void TSTAgent::run(){
 
 	}
 }
+
+
+int TSTAgent::readData(uint8_t *buf, size_t max){
+	int res = 0;
+	if (pUart == NULL){
+		res = stdio_usb.in_chars((char*)buf, max);
+	} else {
+		while (uart_is_readable ( pUart)){
+			buf[res] = uart_getc ( pUart);
+			res++;
+			if (res >= max){
+				break;
+			}
+		}
+	}
+	return res;
+}
+
+void TSTAgent::writeData(uint8_t *buf, size_t length){
+	if (pUart == NULL){
+		stdio_usb.out_chars((char*)buf, length);
+		stdio_usb.out_flush();
+	} else {
+		uart_write_blocking (pUart,  buf,  length);
+	}
+}
+
+
 
 /***
  * Get the static depth required in words

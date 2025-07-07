@@ -11,6 +11,7 @@
 #include "Counter.h"
 #include "Worker.h"
 #include "TSTAgent.h"
+#include "hardware/uart.h"
 
 extern"C"{
 #include "pico/stdio/driver.h"
@@ -25,21 +26,38 @@ extern"C"{
 
 #define TASK_PRIORITY      ( tskIDLE_PRIORITY + 1UL )
 
+#define UART_ID uart1
+#define UART_TX_PIN 4
+#define UART_RX_PIN 5
+
+
+Worker worker1(0);
+Worker worker2(1);
+Worker worker3(2);
+Worker worker4(3);
 
 
 int64_t alarmCB (alarm_id_t id, void *user_data){
 	Counter::getInstance()->report();
+	worker1.stop();
+	worker2.stop();
+	worker3.stop();
+	worker4.stop();
 	return 0;
 }
 
 
 
+
+
 void main_task(void* params){
-  Worker worker1(0);
-  Worker worker2(1);
-  Worker worker3(2);
-  Worker worker4(3);
-  TSTAgent tst;
+
+  uart_init (UART_ID, 115200);
+  gpio_set_function(UART_TX_PIN, UART_FUNCSEL_NUM(UART_ID, UART_TX_PIN));
+  gpio_set_function(UART_RX_PIN, UART_FUNCSEL_NUM(UART_ID, UART_RX_PIN));
+
+
+  TSTAgent tst(UART_ID);
 
   printf("Main task started\n");
 
