@@ -1,5 +1,5 @@
 /**
- * Calculate the value of PI using 4 Worker threads across 2 cores
+ *TST Test on RPI Pico2
  * Jon Durrant - 2024
  */
 
@@ -8,35 +8,22 @@
 #include <cstdio>
 #include <cstdlib>
 #include <FreeRTOS.h>
-#include "Counter.h"
-#include "Worker.h"
 #include "TSTAgent.h"
 #include "TSTMetrics.h"
+#include "BlinkAgent.h"
 #include "hardware/uart.h"
 
 
+#define DELAY_SHORT 200 // in microseconds
+#define DELAY_LONG  1000 // in microseconds
 
 #define TASK_PRIORITY      ( tskIDLE_PRIORITY + 1UL )
+
 
 #define UART_ID uart0
 #define UART_TX_PIN 16
 #define UART_RX_PIN 17
 
-
-Worker worker1(0);
-Worker worker2(1);
-Worker worker3(2);
-Worker worker4(3);
-
-
-int64_t alarmCB (alarm_id_t id, void *user_data){
-	Counter::getInstance()->report();
-	worker1.stop();
-	worker2.stop();
-	worker3.stop();
-	worker4.stop();
-	return 0;
-}
 
 
 
@@ -44,20 +31,17 @@ int64_t alarmCB (alarm_id_t id, void *user_data){
 
 void main_task(void* params){
 
-  TSTAgent tst;
+
+  //TSTAgent tst(UART_ID);
+ TSTAgent tst;
+  tst.start("TST", TASK_PRIORITY);
+
   TSTMetrics metrics;
+  metrics.start("Metrics", TASK_PRIORITY);
 
-  alarm_id_t alarm = add_alarm_in_ms(
-  			60 * 1000,
-  			alarmCB, NULL, false);
+  BlinkAgent blink;
+  blink.start("Blink", TASK_PRIORITY);
 
-	Counter::getInstance(UART_ID)->start();
-	tst.start("TST", TASK_PRIORITY);
-	metrics.start("TXT Metrics",  TASK_PRIORITY);
-	worker1.start("Worker 1", TASK_PRIORITY );
-	worker2.start("Worker 2", TASK_PRIORITY);
-	worker3.start("Worker 3", TASK_PRIORITY );
-	worker4.start("Worker 4", TASK_PRIORITY);
 
   for (;;){
 	  vTaskDelay(3000);
@@ -73,13 +57,15 @@ int main() {
 	//Initialise IO as we are using printf for debug
 	stdio_init_all();
 
+	/* Uart alternative comms
 	uart_init (UART_ID, 115200);
 	gpio_set_function(UART_TX_PIN, UART_FUNCSEL_NUM(UART_ID, UART_TX_PIN));
 	gpio_set_function(UART_RX_PIN, UART_FUNCSEL_NUM(UART_ID, UART_RX_PIN));
-
+	*/
 
 	stdio_usb_init();
 	// Wait for USB CDC to be connected (optional, but helps for debugging)
+
 	while (!stdio_usb_connected()) {
 		sleep_ms(10);
 	}

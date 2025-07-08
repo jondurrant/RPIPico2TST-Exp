@@ -27,13 +27,14 @@ TSTAgent::~TSTAgent() {
 
 
 void TSTAgent::run(){
-	UBaseType_t uxCoreAffinityMask;
-	uxCoreAffinityMask = ( ( 1 << 0 ) );
-	vTaskCoreAffinitySet( xHandle, uxCoreAffinityMask );
+		UBaseType_t uxCoreAffinityMask;
+	    uxCoreAffinityMask = ( ( 1 << 0 ) );
+	    vTaskCoreAffinitySet( xHandle, uxCoreAffinityMask );
 
-	char buf[25];
+	    char buf[25];
 
 	size_t read = 0;
+	uint32_t last = to_ms_since_boot (get_absolute_time());
 	tstInit(&TST_Device);
 
 	for (;;){
@@ -47,6 +48,12 @@ void TSTAgent::run(){
 				sprintf(errTxt,"Error: %u", err);
 				tstMonitorSend(TST_Device.name, TST_Interface.interface, errTxt);
 			}
+		}
+
+		uint32_t now = to_ms_since_boot (get_absolute_time());
+		if (now > (last + 200)){
+			TST_V.variable1++;
+			last = now;
 		}
 
 		//tstMonitorSend(TST_Device.name, TST_Interface.interface, "TST Device alive");

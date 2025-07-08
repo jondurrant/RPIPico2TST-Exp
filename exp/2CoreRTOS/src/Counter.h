@@ -18,7 +18,9 @@ class Counter {
 public:
 	virtual ~Counter();
 
-	static Counter * getInstance();
+	static Counter * getInstance(uart_inst_t *uart = NULL);
+
+	void setUart(uart_inst_t *uart);
 
 	void start();
 	void inc(uint8_t id=0);
@@ -26,6 +28,8 @@ public:
 	void report();
 
 	void getCores(uint32_t &core0, uint32_t &core1);
+
+	void print(const char *s);
 
 protected:
 	Counter();
@@ -37,6 +41,8 @@ private:
 	uint32_t xStopTime = 0;
 	uint32_t xCounts[MAX_ID];
 	uint32_t xCoreCounts[MAX_CORES];
+
+	uart_inst_t * pUart = NULL;
 
 };
 

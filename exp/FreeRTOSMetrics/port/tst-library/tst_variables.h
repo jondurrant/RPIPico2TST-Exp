@@ -22,11 +22,17 @@ extern "C"
 /*TSTVARIABLESSTART*/
 
 #define TSTNAME "MyDevice"
-#define TSTMAXSIZE 100
+#define TSTMAXSIZE 256
 
 typedef struct __attribute__((packed)) {
-    uint16_t      myVariable;
-    uint16_t      myLED;
+    // Application variables
+    int32_t variable1;  // Example variable
+
+    // System/monitoring variables
+    uint32_t heap_free;
+    uint32_t heap_min_ever;
+    uint32_t task_count;
+    uint32_t led_status; // 0=off, 1=on
 } TST_Variables;
 
 /*TSTVARIABLESEND*/

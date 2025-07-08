@@ -20,14 +20,22 @@ Counter::~Counter() {
 }
 
 
-Counter * Counter::getInstance(){
+Counter * Counter::getInstance( uart_inst_t *uart){
 	if (Counter::pSingleton == NULL){
 		Counter::pSingleton = new Counter;
+	}
+	if (uart != NULL){
+		Counter::pSingleton->setUart(uart);
 	}
 	return Counter::pSingleton;
 }
 
+void Counter::setUart(uart_inst_t *uart){
+	pUart = uart;
+}
+
 void Counter::start(){
+	print( "Start\n\r");
 	xStartTime =  to_ms_since_boot(get_absolute_time());
 	for (int i = 0; i < MAX_ID; i++){
 		xCounts[i] = 0;
@@ -61,27 +69,31 @@ void Counter::incCore(uint8_t id, uint8_t  core){
 }
 
 void Counter::report(){
+	char line[80];
 	 xStopTime =  to_ms_since_boot(get_absolute_time());
 
 	 uint32_t sampleTime = xStopTime - xStartTime;
 
-	 printf("Sampled over %d sec and %d ms\n", sampleTime/1000, sampleTime%1000);
-
-	 printf("#\t+Id\t+Core\n");
+	 sprintf(line, "Sampled over %d sec and %d ms\n\r", sampleTime/1000, sampleTime%1000);
+	 print(line);
+	 print("#\t+Id\t+Core\n\r");
 	 uint32_t total = 0;
 	 for (int i = 0; i < MAX_ID; i++){
-		 printf("%d:\t%u", i, xCounts[i]);
+		 sprintf(line,"%d:\t%u\r", i, xCounts[i]);
+		 print(line);
 		 if (i < MAX_CORES){
-			 printf("\t%u\n", xCoreCounts[i]);
+			 sprintf(line,"\t%u\n\r", xCoreCounts[i]);
+			 print(line);
 		 } else {
-			 printf("\n");
+			 print("\n\r");
 		 }
 		total += xCounts[i] ;
 	 }
 
 	 double perSec = (double)total /  ((double) sampleTime / 1000.0);
 
-	 printf("Total: %u \t%f per sec\n", total, perSec);
+	 sprintf(line,"Total: %u \t%f per sec\n\r", total, perSec);
+	 print(line);
 
 }
 
@@ -89,4 +101,12 @@ void Counter::report(){
 void Counter::getCores(uint32_t &core0, uint32_t &core1){
 	core0 = xCoreCounts[0];
 	core1 = xCoreCounts[1];
+}
+
+void Counter::print(const char *s){
+	if (pUart != NULL){
+		uart_puts (pUart,  s);
+	} else {
+		printf(s);
+	}
 }
