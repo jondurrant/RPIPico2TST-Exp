@@ -21,10 +21,15 @@ void TSTMetrics::run(){
 		vTaskList(stats_buffer);
 		char msg[TSTMAXSIZE];
 
-		// Update TST_V with system/monitoring variables
-		TST_V.heap_free = xPortGetFreeHeapSize();
-		TST_V.heap_min_ever = xPortGetMinimumEverFreeHeapSize();
-		TST_V.task_count = uxTaskGetNumberOfTasks();
+		for (int i=0; i < 20; i++){
+
+			// Update TST_V with system/monitoring variables
+			TST_V.heap_free = xPortGetFreeHeapSize();
+			TST_V.heap_min_ever = xPortGetMinimumEverFreeHeapSize();
+			TST_V.task_count = uxTaskGetNumberOfTasks();
+
+			vTaskDelay(pdMS_TO_TICKS(100));
+		}
 
 		snprintf(msg, sizeof(msg), "Task List:\n%s", stats_buffer);
 		tstMonitorSend(TST_Device.name, TST_Interface.interface, msg);
@@ -38,7 +43,7 @@ void TSTMetrics::run(){
 		snprintf(msg, sizeof(msg), "Task count: %u", TST_V.task_count);
 		tstMonitorSend(TST_Device.name, TST_Interface.interface, msg);
 
-		vTaskDelay(pdMS_TO_TICKS(5000));
+
 	}
 
 }

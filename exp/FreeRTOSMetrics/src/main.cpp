@@ -24,7 +24,7 @@
 #define UART_TX_PIN 16
 #define UART_RX_PIN 17
 
-
+#define ALLOC_MAX 5
 
 
 
@@ -44,7 +44,15 @@ void main_task(void* params){
 
 
   for (;;){
-	  vTaskDelay(3000);
+	  void *mem[ALLOC_MAX];
+	  for (int i=0; i < ALLOC_MAX; i++){
+		  mem[i] = pvPortMalloc(200);
+		  vTaskDelay(1000);
+	  }
+	  for (int i=0; i < ALLOC_MAX; i++){
+		  vPortFree(mem[i]);
+		  vTaskDelay(750);
+	  }
   }
 }
 
