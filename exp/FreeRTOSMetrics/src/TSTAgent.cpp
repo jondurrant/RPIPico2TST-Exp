@@ -41,7 +41,7 @@ void TSTAgent::run(){
 
 		read = readData( rxData,  TSTMAXSIZE);
 		if (read > 0) {
-			debugPrintBuffer( "Read",   rxData,  read);
+			//debugPrintBuffer( "Read",   rxData,  read);
 			uint8_t err = tstRx(TST_Device.name, TST_Interface.interface, rxData, read);
 			if (err != TST_OK){
 				char errTxt[10];
